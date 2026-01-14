@@ -2,7 +2,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Business } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Get API key from environment (works in both dev and prod)
+const apiKey = typeof process !== 'undefined' && process.env?.API_KEY 
+  ? process.env.API_KEY 
+  : (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 const mockAnalysis = (name: string, details: string): Partial<Business> => ({
   category: 'General',
@@ -22,6 +27,12 @@ const mockCuration = (wizardAnswers: any, businesses: Business[]): { matchedIds:
 };
 
 export const analyzeBusiness = async (name: string, details: string): Promise<Partial<Business>> => {
+  // If no API key is available, use mock immediately
+  if (!ai) {
+    console.warn('No Gemini API key available, using mock analysis');
+    return mockAnalysis(name, details);
+  }
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -55,6 +66,12 @@ export const getCuration = async (
   wizardAnswers: any, 
   businesses: Business[]
 ): Promise<{ matchedIds: string[], logic: string }> => {
+  // If no API key is available, use mock immediately
+  if (!ai) {
+    console.warn('No Gemini API key available, using mock curation');
+    return mockCuration(wizardAnswers, businesses);
+  }
+
   try {
     const context = JSON.stringify(businesses.map(b => ({
       id: b.id,
