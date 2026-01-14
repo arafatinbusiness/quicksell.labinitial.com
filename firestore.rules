@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read
+    match /{document=**} {
+      allow read: if true;
+    }
+    // Businesses collection: authenticated users can create, update only their own
+    // Also allow creation of seed data (ownerUid == 'seed') without authentication
+    match /businesses/{businessId} {
+      allow create: if request.auth != null || request.resource.data.ownerUid == 'seed';
+      allow update: if request.auth != null && request.auth.uid == resource.data.ownerUid;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerUid;
+    }
+  }
+}

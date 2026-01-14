@@ -1,0 +1,8 @@
+
+{
+  "name": "SellQuick",
+  "description": "The high-velocity marketplace for low-competition niches. Connect, quote, and sell faster than anywhere else.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
